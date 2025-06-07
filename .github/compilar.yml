@@ -1,0 +1,28 @@
+name: Compilar ejecutable Haskell
+
+on:
+  push:
+    branches: [ "main" ]   # Ejecutar en cada push a la rama main
+  workflow_dispatch:        # También podés ejecutarlo manualmente desde GitHub
+
+jobs:
+  build:
+    runs-on: windows-latest   # Para compilar en Windows y generar .exe
+
+    steps:
+      - name: 📥 Clonar el repositorio
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Instalar GHC (Haskell Compiler)
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: "9.4.5"   # Versión estable de GHC
+
+      - name: 🛠️ Compilar Main.hs
+        run: ghc -o bosqueMagico Main.hs
+
+      - name: 📤 Subir ejecutable como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: bosqueMagico.exe
+          path: bosqueMagico.exe
