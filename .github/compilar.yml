@@ -1,4 +1,4 @@
-name: Compilar ejecutable Haskell
+name: Compilar Bosque de Runas
 
 on:
   push:
@@ -19,7 +19,8 @@ jobs:
           ghc-version: "9.4.5"
 
       - name: Compilar Main.hs
-        run: ghc -o bosqueMagico Main.hs
+        run: |
+          ghc -o bosqueMagico.exe Main.hs
 
       - name: Subir ejecutable como artefacto
         uses: actions/upload-artifact@v4
