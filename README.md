@@ -55,15 +55,3 @@ El programa imprimirá el mejor camino encontrado (una lista de coordenadas) y l
 
 ## 2.3. Integración Continua (CI) con GitHub Actions:
 El repositorio incluye un flujo de trabajo de GitHub Actions (.github/workflows/compilar.yml) que compila automáticamente el proyecto cada vez que se suben cambios (push) a la rama main o se crea un pull request. Esto asegura que el código siempre se mantenga compilable. Puedes ver el estado de estas ejecuciones en la pestaña "Actions" de tu repositorio en GitHub.
-
-# 3. Uso de Inteligencia Artificial (IA)
-Para este proyeto, se utilizó la Inteligencia Artificial de manera efectiva como una herramienta de apoyo en varias fases del desarrollo. La IA fue fundamental para la depuración de errores específicos, para obtener aclaraciones sobre la sintaxis de Haskell que se nos olvidava, y para generar ideas y enfoques en la implementación de partes clave del código, como la lógica para la runa 'T' o el manejo de los movimientos diagonales. El equipo guió activamente a la IA, seleccionando y refinando las sugerencias para asegurar que se alinearan con el paradigma funcional y los objetivos del proyecto. Toda la lógica central y el diseño de la solución fueron concebidos por el propio equipo, validando cada contribución de la IA mediante pruebas exhaustivas para garantizar su correcto funcionamiento y cohesión con el resto del código.
-
-# 4. Reflexiones Finales / Autoevaluación
-## ¿Qué fue lo más desafiante de implementar en paradigma funcional?
-
-Para nosotros, el mayor desafío fue pensar de manera recursiva y evitar la mutabilidad. Acostumbrados a los bucles y variables modificables, adaptar la mente a un enfoque donde el estado se pasa a través de nuevas instancias de datos y la iteración se logra con recursión o funciones de orden superior fue un cambio significativo. La depuración de cadenas de funciones puras también presentó su complejidad al inicio.
-
-## ¿Qué aprendizajes surgieron del proyecto?
-
-Este proyecto nos permitió consolidar nuestra comprensión del paradigma funcional y la importancia de la pureza de las funciones. Aprendimos a estructurar mejor el código para la inmutabilidad, a manejar el estado de forma más explícita y a valorar la composición de funciones. Además, la experiencia con Git en un entorno colaborativo fue muy valiosa, enseñándonos sobre la resolución de conflictos y la importancia de los commits claros.
