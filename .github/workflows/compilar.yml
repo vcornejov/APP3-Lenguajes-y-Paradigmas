@@ -1,0 +1,38 @@
+# Nombre del flujo de trabajo visible en GitHub Actions.
+name: Compilar Haskell
+
+# Eventos que dispararán este flujo de trabajo.
+on:
+  push:
+    branches:
+      - main # Se ejecuta cuando se hace push a la rama 'main'.
+  pull_request:
+    branches:
+      - main # Se ejecuta cuando se crea un pull request hacia la rama 'main'.
+
+# Define los trabajos a ejecutar. Un flujo de trabajo puede tener uno o más trabajos.
+jobs:
+  build: # Nombre del trabajo.
+    # El entorno en el que se ejecutará este trabajo. 'ubuntu-latest' es una opción común y robusta.
+    runs-on: ubuntu-latest
+
+    # Pasos que se ejecutarán como parte de este trabajo.
+    steps:
+      # Paso 1: Checkout del código.
+      # Utiliza la acción 'checkout' para obtener una copia de tu repositorio en el corredor.
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      # Paso 2: Configurar el entorno Haskell.
+      # Utiliza la acción 'setup-haskell' para instalar el compilador GHC y Cabal.
+      # Puedes especificar la versión de GHC si lo necesitas, por ejemplo, 'ghc-version: '9.2.7''.
+      - name: Configurar Haskell
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: 'latest' # Instala la última versión de GHC.
+
+      # Paso 3: Compilar el proyecto Haskell.
+      # Ejecuta el comando 'ghc Main.hs' para compilar tu archivo principal.
+      # Esto creará un ejecutable llamado 'Main' (o 'Main.exe' en Windows).
+      - name: Compilar App Haskell
+        run: ghc Main.hs
