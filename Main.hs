@@ -1,5 +1,5 @@
 -- | Módulo: Main
--- | Descripción: App #3 - El Bosque de las Runas Mágicas
+-- | Descripción: App #3 - El Bosque de las Runas Mágicas, Contiene una runa "D" especial
 -- | Este módulo contiene toda la lógica para encontrar el camino de máxima energía en un bosque de runas.
 
 module Main where -- Define el módulo principal. Para un solo archivo, 'Main' es lo más común.
@@ -12,7 +12,7 @@ import Data.Ord (comparing)   -- Para comparar elementos basándose en una funci
 -- 2. Definiciones de Tipos de Datos y Sinónimos de Tipo:
 -- Esto mejora la legibilidad y la seguridad de tipos, conceptos importantes en Haskell.
 type Coordinate = (Int, Int)
-type Forest = [[Int]]
+type Forest = [[String]]
 type Path = [Coordinate]
 
 -- WizardState es clave para la inmutabilidad y el manejo de estado.
@@ -35,10 +35,11 @@ initialEnergy = 12 -- Energía inicial del mago
 -- * Se aplican funciones de orden superior como `map` y `filter`.
 
 -- | Calcula el efecto de una runa en la energía.
-calculateRuneEffect :: Int -> Int -> Int
+calculateRuneEffect :: Int -> String -> Int
 calculateRuneEffect currentEnergy runeValue
-    | runeValue == 0 = currentEnergy + runeValue - 3 -- Trampa: -3 energía adicional 
-    | otherwise      = currentEnergy + runeValue     -- Suma/resta el valor de la runa 
+    | runeValue == "0" = currentEnergy - 3 -- Trampa: -3 energía adicional 
+    | runeValue == "D" = currentEnergy
+    | otherwise      = currentEnergy + read runeValue     -- Suma/resta el valor de la runa 
 
 -- | Genera una lista de movimientos posibles desde una coordenada.
 -- Considera los límites del bosque y las reglas específicas de los movimientos.
@@ -50,19 +51,31 @@ generatePossibleMoves forest (row, col) visitedCells =
         isValidCoord (r, c) = r >= 0 && r < numRows && c >= 0 && c < numCols
         -- Función para verificar si un movimiento 'izquierda' o 'arriba' vuelve a una celda visitada
         notVisited (r, c) = (r, c) `notElem` visitedCells
+        currentRune = (forest !! row) !! col
 
-        -- Posibles movimientos absolutos
-        rightMove = (row, col + 1)
-        downMove  = (row + 1, col)
-        diagonalMove = (row + 1, col + 1)
-        leftMove = (row, col - 1)
-        upMove = (row - 1, col)
+        -- Movimientos de una casilla
+        normalMoves =
+            let rightMove = (row, col + 1)
+                downMove  = (row + 1, col)
+                diagonalMove = (row + 1, col + 1)
+                leftMove = (row, col - 1)
+                upMove = (row - 1, col)
+            in filter isValidCoord (
+                [rightMove, downMove, diagonalMove] ++
+                (if notVisited leftMove then [leftMove] else []) ++
+                (if notVisited upMove then [upMove] else [])
+            )
+        -- Movimientos de dos casillas
+        doubleMoves =
+            let right2 = (row, col + 2)
+                down2  = (row + 2, col)
+                diag2  = (row + 2, col + 2)
+            in filter isValidCoord [right2, down2, diag2]
+
     in
-    filter isValidCoord (
-        [rightMove, downMove, diagonalMove] ++
-        (if notVisited leftMove then [leftMove] else []) ++
-        (if notVisited upMove then [upMove] else [])
-    )
+    if currentRune == "D"
+        then doubleMoves
+        else normalMoves
 
 -- | Determina si un movimiento es diagonal.
 isDiagonalMove :: Coordinate -> Coordinate -> Bool
@@ -73,14 +86,34 @@ isDiagonalMove (r1, c1) (r2, c2) = abs (r1 - r2) == 1 && abs (c1 - c2) == 1
 applyMove :: Forest -> WizardState -> Coordinate -> WizardState
 applyMove forest (WizardState currentE currentP visitedC) nextCoord@(r, c) =
     let
-        runeValue = (forest !! r) !! c
-        energyAfterRune = calculateRuneEffect currentE runeValue
+        prevCoord@(pr, pc) = last currentP
+        rune = (forest !! r) !! c
+
+        isDoubleStep =
+            let distR = abs (r - pr)
+                distC = abs (c - pc)
+            in rune == "D" && ((distR == 2 && distC == 0) || (distR == 0 && distC == 2) || (distR == 2 && distC == 2))
+
+        skippedCoord = if isDoubleStep then ((pr + r) `div` 2, (pc + c) `div` 2) else (-1, -1)
+
+        energyAfterRune =
+            if isDoubleStep
+                then currentE
+                else calculateRuneEffect currentE rune
+
         energyAfterMoveCost =
-            if isDiagonalMove (last currentP) nextCoord
-            then energyAfterRune - 2 -- Costo extra por movimiento diagonal 
-            else energyAfterRune
+            if isDiagonalMove prevCoord nextCoord
+                then energyAfterRune - 2
+                else energyAfterRune - 1
+
+        newVisited =
+            if isDoubleStep
+                then visitedC ++ [nextCoord, skippedCoord]
+                else visitedC ++ [nextCoord]
+
+        newPath = currentP ++ [nextCoord]
     in
-    WizardState energyAfterMoveCost (currentP ++ [nextCoord]) (visitedC ++ [nextCoord])
+    WizardState energyAfterMoveCost newPath newVisited
 
 -- | Función principal recursiva para encontrar todos los caminos válidos.
 -- Utiliza recursión para explorar el espacio de estados.
@@ -120,21 +153,19 @@ findBestPath forest paths =
     -- Y luego selecciona el mejor.
     let validPathsWithEnergy = [(path, calculateFinalEnergy forest path) | path <- paths]
         -- maximumBy es una función de orden superior que encuentra el máximo según una función de comparación.
-        (bestPath, finalEnergy) = maximumBy (comparing snd) validPathsWithEnergy
-    in
-    (bestPath, finalEnergy)
+    in maximumBy (comparing snd) validPathWithEnergy
 
 -- 5. Función Principal (Main):
 -- Punto de entrada del programa. Contiene la lógica de inicialización y salida.
 main :: IO ()
 main = do
     -- La matriz del bosque proporcionada en el enunciado 
-    let forest = [[ 2, -3,  1,  0,  2,  3],
-                  [-5,  4, -2,  1,  0, -4],
-                  [ 1,  3,  0, -3,  2,  2],
-                  [ 2, -1,  4,  0, -5,  1],
-                  [ 0,  2, -3,  3,  4,  1],
-                  [ 1,  0,  2, -2,  1,  5]]
+    let forest = [[ "2", "-3",  "1",  "0",  "2",  "3"],
+                  ["-5",  "4", "-2",  "1",  "0", "-4"],
+                  [ "1",  "3",  "0", "-3",  "2",  "2"],
+                  [ "2", "-1",  "4",  "0", "-5",  "1"],
+                  [ "0",  "2", "D",  "3",  "4",  "1"],
+                  [ "1",  "0",  "2", "-2",  "1",  "5"]]
 
     -- Coordenada de inicio 
     let startCoord = (0, 0)
